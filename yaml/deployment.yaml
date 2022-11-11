@@ -1,0 +1,110 @@
+---
+# Scoped service account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: doc-controller
+  namespace: default
+automountServiceAccountToken: true
+
+---
+# Access for the service account
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: control-docs
+rules:
+  - apiGroups: ["kube.rs"]
+    resources: ["documents", "documents/status"]
+    verbs:
+    - get
+    - watch
+    - list
+    - patch
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["create"]
+
+---
+# Binding the role to the account in default
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: doc-controller-binding
+subjects:
+- kind: ServiceAccount
+  namespace: default
+  name: doc-controller
+roleRef:
+  kind: ClusterRole
+  name: control-docs
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Expose the http port of the service
+apiVersion: v1
+kind: Service
+metadata:
+  name: doc-controller
+  namespace: default
+  labels:
+    app: doc-controller
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: doc-controller
+
+---
+# Main deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: doc-controller
+  namespace: default
+  labels:
+    app: doc-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: doc-controller
+  template:
+    metadata:
+      labels:
+        app: doc-controller
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: doc-controller
+      containers:
+      - name: doc-controller
+        image: clux/controller:otel
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        # We are pointing to tempo or grafana tracing agent's otlp grpc receiver port
+        - name: OPENTELEMETRY_ENDPOINT_URL
+          value: "https://promstack-tempo.monitoring.svc.cluster.local:4317"
+        - name: RUST_LOG
+          value: "info,kube=debug,controller=debug"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
