@@ -28,7 +28,7 @@ telemetry = ["tonic", "opentelemetry-otlp"]
 [dependencies]
 actix-web = "4.2.1"
 futures = "0.3.24"
-tokio = { version = "1.19.2", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.19.2", features = ["macros", "rt-multi-thread", "full"] }
 k8s-openapi = { version = "0.16.0", features = ["v1_24"], default-features = false }
 schemars = { version = "0.8.10", features = ["chrono"] }
 serde = { version = "1.0.144", features = ["derive"] }
@@ -43,6 +43,14 @@ opentelemetry = { version = "0.18.0", features = ["trace", "rt-tokio"] }
 opentelemetry-otlp = { version = "0.11.0", features = ["tokio"], optional = true }
 tonic = { version = "0.8.1", optional = true }
 thiserror = "1.0.35"
+
+tokio-stream = "0.1.11"
+mime_guess = "2.0.4"
+aws-config = "0.51.0"
+aws-sdk-acm = "0.21.0"
+aws-sdk-s3 = "0.21.0"
+anyhow = "1.0.66"
+
 
 [dependencies.kube]
 features = ["runtime", "client", "derive"]

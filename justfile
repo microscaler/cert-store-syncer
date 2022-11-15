@@ -24,8 +24,6 @@ compile features="":
   #!/usr/bin/env bash
     docker run --rm \
       --platform linux/amd64 \
-      --memory=2g \
-      --memory-swap=2g
       -v cargo-cache:/root/.cargo \
       -v $PWD:/volume \
       -w /volume \
