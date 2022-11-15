@@ -44,7 +44,9 @@ async fn list_keys(client: &Client, bucket_name: &str) -> Result<Vec<String>> {
     let resp = req.send().await?;
 
     // collect keys
-    let keys = resp.contents().unwrap_or_default()
+    let keys = resp
+        .contents()
+        .unwrap_or_default()
         .iter()
         .filter_map(|o| o.key.as_ref())
         .map(|k| k.to_string())
