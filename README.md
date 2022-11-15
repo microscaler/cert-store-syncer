@@ -21,7 +21,7 @@ On completion of development the controller will be donated to CNCF Cert Manager
 ### Cluster
 As an example; get `k3d` then:
 
-```sh
+```shgit 
 k3d cluster create --registry-create --servers 1 --agents 1 main
 k3d kubeconfig get --all > ~/.kube/k3d
 export KUBECONFIG="$HOME/.kube/k3d"
