@@ -49,6 +49,7 @@ mime_guess = "2.0.4"
 aws-config = "0.51.0"
 aws-sdk-acm = "0.21.0"
 aws-sdk-s3 = "0.21.0"
+aws-sdk-elasticloadbalancingv2 = "0.21.0"
 anyhow = "1.0.66"
 
 

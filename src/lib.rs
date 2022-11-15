@@ -12,11 +12,12 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// State machinery for kube, as exposeable to actix
 pub mod manager;
+
 pub use manager::Manager;
 
 /// Generated type, for crdgen
 pub use manager::ACMCertificate;
-
-pub mod aws;
-/// Log and trace integrations
+pub mod aws_acm;
+pub mod aws_lb;
+pub mod aws_s3;
 pub mod telemetry;

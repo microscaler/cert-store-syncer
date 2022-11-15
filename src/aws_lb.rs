@@ -1,6 +1,7 @@
 #![allow(unused, unused_imports, unused_variables)]
-use anyhow::{anyhow, bail, Context, Result};
-use aws_sdk_acm::{config, Client, Credentials, Region};
+use anyhow::{anyhow, bail, Context, Error, Result};
+use aws_sdk_elasticloadbalancingv2::{config, Client, Credentials, Region};
+
 
 use std::{
     env,
@@ -30,7 +31,7 @@ fn get_aws_client(region: &str) -> Result<Client> {
     let region = Region::new(region.to_string());
     let conf_builder = config::Builder::new().region(region).credentials_provider(cred);
     let conf = conf_builder.build();
-
     let client = Client::from_conf(conf);
+
     Ok(client)
 }
