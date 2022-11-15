@@ -1,6 +1,6 @@
 #![allow(unused, unused_imports, unused_variables)]
 use anyhow::{anyhow, bail, Context, Result};
-use aws_sdk_s3::{config, Client, Credentials, Region};
+use aws_sdk_acm::{config, Client, Credentials, Region};
 
 use std::env;
 use std::fs::{create_dir_all, File};
