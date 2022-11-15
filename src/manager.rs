@@ -17,7 +17,7 @@ use prometheus::{
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_json::{json};
+use serde_json::json;
 use std::sync::Arc;
 
 //use serde_json::map::Keys;
@@ -32,7 +32,7 @@ static ACMCERTIFICATE_FINALIZER: &str = "acmcertificates.microscaler.io";
 /// Generate the Kubernetes wrapper struct `ACMCertificate` from our Spec and Status struct
 ///
 /// This provides a hook for generating the CRD yaml (in crdgen.rs)
-#[derive(CustomResource, Deserialize, Serialize, Clone, Debug, JsonSchema )]
+#[derive(CustomResource, Deserialize, Serialize, Clone, Debug, JsonSchema)]
 #[kube(kind = "ACMCertificate", group = "microscaler.io", version = "v1", namespaced)]
 #[kube(status = "ACMCertificateStatus", shortname = "acm")]
 pub struct ACMCertificateSpec {

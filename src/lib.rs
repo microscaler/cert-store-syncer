@@ -17,6 +17,6 @@ pub use manager::Manager;
 /// Generated type, for crdgen
 pub use manager::ACMCertificate;
 
+pub mod aws;
 /// Log and trace integrations
 pub mod telemetry;
-pub mod aws;

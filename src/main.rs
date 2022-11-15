@@ -1,10 +1,10 @@
 #![allow(unused_imports, unused_variables)]
+use aws_config::retry::RetryConfig;
+use aws_sdk_acm as acm;
 pub use controller::*;
 use prometheus::{Encoder, TextEncoder};
 use tracing::{debug, error, info, trace, warn};
 use tracing_subscriber::{prelude::*, EnvFilter, Registry};
-use aws_sdk_acm as acm;
-use aws_config::retry::RetryConfig;
 
 
 use actix_web::{

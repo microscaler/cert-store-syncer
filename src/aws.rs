@@ -2,10 +2,12 @@
 use anyhow::{anyhow, bail, Context, Result};
 use aws_sdk_acm::{config, Client, Credentials, Region};
 
-use std::env;
-use std::fs::{create_dir_all, File};
-use std::io::{BufReader, BufWriter, Read, Write};
-use std::path::{Path, PathBuf};
+use std::{
+    env,
+    fs::{create_dir_all, File},
+    io::{BufReader, BufWriter, Read, Write},
+    path::{Path, PathBuf},
+};
 use tokio_stream::StreamExt;
 
 
@@ -23,11 +25,7 @@ fn get_aws_client(region: &str) -> Result<Client> {
     let key_secret = env::var(ENV_CRED_KEY_SECRET).context("AWS_KEY_SECRET not set")?;
 
     // create credentials
-    let cred = Credentials::new(key_id,
-                                            key_secret,
-                                            None,
-                                            None,
-                                            "Loaded from env");
+    let cred = Credentials::new(key_id, key_secret, None, None, "Loaded from env");
 
     // create client
     let region = Region::new(region.to_string());
@@ -37,11 +35,3 @@ fn get_aws_client(region: &str) -> Result<Client> {
     let client = Client::from_conf(conf);
     Ok(client)
 }
-
-
-
-
-
-
-
-
