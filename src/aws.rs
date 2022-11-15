@@ -1,6 +1,7 @@
 #![allow(unused, unused_imports, unused_variables)]
 use anyhow::{anyhow, bail, Context, Result};
-use aws_sdk_acm::{config, Client, Credentials, Region};
+//use aws_sdk_acm::{config, Client, Credentials, Region};
+use aws_sdk_s3::{config, Client, Credentials, Region};
 
 use std::{
     env,
@@ -33,4 +34,21 @@ fn get_aws_client(region: &str) -> Result<Client> {
 
     let client = Client::from_conf(conf);
     Ok(client)
+}
+
+async fn list_keys(client: &Client, bucket_name: &str) -> Result<Vec<String>> {
+    // build - aws request
+    let req = client.list_objects_v2().prefix("").bucket(bucket_name);
+
+    // send request
+    let resp = req.send().await?;
+
+    // collect keys
+    let keys = resp.contents().unwrap_or_default()
+        .iter()
+        .filter_map(|o| o.key.as_ref())
+        .map(|k| k.to_string())
+        .collect::<Vec<_>>();
+
+    Ok(keys)
 }
