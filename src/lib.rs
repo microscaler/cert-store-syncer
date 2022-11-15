@@ -15,7 +15,7 @@ pub mod manager;
 pub use manager::Manager;
 
 /// Generated type, for crdgen
-pub use manager::Document;
+pub use manager::ACMCertificate;
 
 /// Log and trace integrations
 pub mod telemetry;

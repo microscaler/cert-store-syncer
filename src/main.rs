@@ -3,6 +3,9 @@ pub use controller::*;
 use prometheus::{Encoder, TextEncoder};
 use tracing::{debug, error, info, trace, warn};
 use tracing_subscriber::{prelude::*, EnvFilter, Registry};
+use aws_sdk_acm as acm;
+use aws_config::retry::RetryConfig;
+
 
 use actix_web::{
     get, middleware,
@@ -48,6 +51,13 @@ async fn main() -> Result<()> {
 
     // Initialize tracing
     tracing::subscriber::set_global_default(collector).unwrap();
+
+    // Initialize Aws config
+    let shared_config = aws_config::load_from_env().await;
+    let aws_config = aws_sdk_acm::config::builder::from(&shared_config)
+        .retry_config(RetryConfig::new().max_attempts(5))
+        .build();
+    let acm_client = acm::Client::new(&aws_config);
 
     // Start kubernetes controller
     let (manager, controller) = Manager::new().await;

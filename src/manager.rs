@@ -17,13 +17,18 @@ use prometheus::{
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{json};
 use std::sync::Arc;
+
+//use serde_json::map::Keys;
 use tokio::{
     sync::RwLock,
     time::{Duration, Instant},
 };
 use tracing::*;
+
+
+
 
 static DOCUMENT_FINALIZER: &str = "documents.kube.rs";
 
@@ -31,21 +36,25 @@ static DOCUMENT_FINALIZER: &str = "documents.kube.rs";
 ///
 /// This provides a hook for generating the CRD yaml (in crdgen.rs)
 #[derive(CustomResource, Deserialize, Serialize, Clone, Debug, JsonSchema)]
-#[kube(kind = "Document", group = "kube.rs", version = "v1", namespaced)]
-#[kube(status = "DocumentStatus", shortname = "doc")]
-pub struct DocumentSpec {
-    title: String,
+#[kube(kind = "ACMCertificate", group = "microscaler.io", version = "v1", namespaced)]
+#[kube(status = "ACMCertificateStatus", shortname = "acm")]
+pub struct ACMCertificateSpec {
+    certificate_name: String,
+    certificate: Cer
+    // certificate_arn: aws_sdk_acm::types::CertificateArn,
+    // certificate_chain: aws_sdk_acm::types::CertificateChain,
+    // private_key: aws_sdk_acm::PrivateKey,
     hide: bool,
-    content: String,
 }
 
 /// The status object of `Document`
 #[derive(Deserialize, Serialize, Clone, Debug, JsonSchema)]
-pub struct DocumentStatus {
+pub struct ACMCertificateStatus {
     hidden: bool,
 }
 
-impl Document {
+
+impl ACMCertificate {
     fn was_hidden(&self) -> bool {
         self.status.as_ref().map(|s| s.hidden).unwrap_or(false)
     }
@@ -63,7 +72,7 @@ struct Context {
 }
 
 #[instrument(skip(ctx, doc), fields(trace_id))]
-async fn reconcile(doc: Arc<Document>, ctx: Arc<Context>) -> Result<Action> {
+async fn reconcile(doc: Arc<ACMCertificate>, ctx: Arc<Context>) -> Result<Action> {
     let trace_id = telemetry::get_trace_id();
     Span::current().record("trace_id", &field::display(&trace_id));
     let start = Instant::now();
@@ -71,7 +80,7 @@ async fn reconcile(doc: Arc<Document>, ctx: Arc<Context>) -> Result<Action> {
     let client = ctx.client.clone();
     let name = doc.name_any();
     let ns = doc.namespace().unwrap();
-    let docs: Api<Document> = Api::namespaced(client, &ns);
+    let docs: Api<ACMCertificate> = Api::namespaced(client, &ns);
 
     let action = finalizer(&docs, DOCUMENT_FINALIZER, doc, |event| async {
         match event {
@@ -87,17 +96,17 @@ async fn reconcile(doc: Arc<Document>, ctx: Arc<Context>) -> Result<Action> {
         .reconcile_duration
         .with_label_values(&[])
         .observe(duration);
-    info!("Reconciled Document \"{}\" in {}", name, ns);
+    info!("Reconciled ACMCertificate \"{}\" in {}", name, ns);
     action
 }
 
-fn error_policy(_doc: Arc<Document>, error: &Error, ctx: Arc<Context>) -> Action {
+fn error_policy(_doc: Arc<ACMCertificate>, error: &Error, ctx: Arc<Context>) -> Action {
     warn!("reconcile failed: {:?}", error);
     ctx.metrics.failures.inc();
     Action::requeue(Duration::from_secs(5 * 60))
 }
 
-impl Document {
+impl ACMCertificate {
     // Reconcile (for non-finalizer related changes)
     async fn reconcile(&self, ctx: Arc<Context>) -> Result<Action, kube::Error> {
         let client = ctx.client.clone();
@@ -106,7 +115,7 @@ impl Document {
         let recorder = Recorder::new(client.clone(), reporter, self.object_ref(&()));
         let name = self.name_any();
         let ns = self.namespace().unwrap();
-        let docs: Api<Document> = Api::namespaced(client, &ns);
+        let docs: Api<ACMCertificate> = Api::namespaced(client, &ns);
 
         let should_hide = self.spec.hide;
         if self.was_hidden() && should_hide {
@@ -124,8 +133,8 @@ impl Document {
         // always overwrite status object with what we saw
         let new_status = Patch::Apply(json!({
             "apiVersion": "kube.rs/v1",
-            "kind": "Document",
-            "status": DocumentStatus {
+            "kind": "ACMCertificate",
+            "status": ACMCertificateStatus {
                 hidden: should_hide,
             }
         }));
@@ -227,7 +236,7 @@ impl Manager {
             diagnostics: diagnostics.clone(),
         });
 
-        let docs = Api::<Document>::all(client);
+        let docs = Api::<ACMCertificate>::all(client);
         // Ensure CRD is installed before loop-watching
         let _r = docs
             .list(&ListParams::default().limit(1))
