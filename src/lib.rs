@@ -19,3 +19,4 @@ pub use manager::ACMCertificate;
 
 /// Log and trace integrations
 pub mod telemetry;
+pub mod aws;

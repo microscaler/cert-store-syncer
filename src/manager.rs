@@ -27,27 +27,20 @@ use tokio::{
 };
 use tracing::*;
 
+static ACMCERTIFICATE_FINALIZER: &str = "acmcertificates.microscaler.io";
 
-
-
-static DOCUMENT_FINALIZER: &str = "documents.kube.rs";
-
-/// Generate the Kubernetes wrapper struct `Document` from our Spec and Status struct
+/// Generate the Kubernetes wrapper struct `ACMCertificate` from our Spec and Status struct
 ///
 /// This provides a hook for generating the CRD yaml (in crdgen.rs)
-#[derive(CustomResource, Deserialize, Serialize, Clone, Debug, JsonSchema)]
+#[derive(CustomResource, Deserialize, Serialize, Clone, Debug, JsonSchema )]
 #[kube(kind = "ACMCertificate", group = "microscaler.io", version = "v1", namespaced)]
 #[kube(status = "ACMCertificateStatus", shortname = "acm")]
 pub struct ACMCertificateSpec {
     certificate_name: String,
-    certificate: Cer
-    // certificate_arn: aws_sdk_acm::types::CertificateArn,
-    // certificate_chain: aws_sdk_acm::types::CertificateChain,
-    // private_key: aws_sdk_acm::PrivateKey,
     hide: bool,
 }
 
-/// The status object of `Document`
+/// The status object of `ACMCertificate`
 #[derive(Deserialize, Serialize, Clone, Debug, JsonSchema)]
 pub struct ACMCertificateStatus {
     hidden: bool,
@@ -82,7 +75,7 @@ async fn reconcile(doc: Arc<ACMCertificate>, ctx: Arc<Context>) -> Result<Action
     let ns = doc.namespace().unwrap();
     let docs: Api<ACMCertificate> = Api::namespaced(client, &ns);
 
-    let action = finalizer(&docs, DOCUMENT_FINALIZER, doc, |event| async {
+    let action = finalizer(&docs, ACMCERTIFICATE_FINALIZER, doc, |event| async {
         match event {
             Finalizer::Apply(doc) => doc.reconcile(ctx.clone()).await,
             Finalizer::Cleanup(doc) => doc.cleanup(ctx.clone()).await,
@@ -220,7 +213,7 @@ pub struct Manager {
     diagnostics: Arc<RwLock<Diagnostics>>,
 }
 
-/// Example Manager that owns a Controller for Document
+/// Example Manager that owns a Controller for ACMCertificate
 impl Manager {
     /// Lifecycle initialization interface for app
     ///
