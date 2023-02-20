@@ -33,6 +33,19 @@ compile features="":
     && ls -lh target/x86_64-unknown-linux-gnu/release/controller
   #cp target/x86_64-unknown-linux-musl/release/controller .
 
+# compile for musl (for docker image)
+acompile features="":
+  #!/usr/bin/env bash
+    docker run --rm \
+      -v cargo-cache:/root/.cargo \
+      -v $PWD:/volume \
+      -w /volume \
+      -it clux/muslrust:stable \
+    cargo build --release --features={{features}} --bin controller # \
+    # && echo "binary is in target/x86_64-unknown-linux-gnu/release/controller" \
+    # && ls -lh target/x86_64-unknown-linux-gnu/release/controller
+  #cp target/x86_64-unknown-linux-musl/release/controller .
+
 # docker build (requires compile step first)
 build:
   docker build -t {{ORG}}/{{NAME}}:{{VERSION}} .

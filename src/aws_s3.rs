@@ -119,6 +119,5 @@ async fn download_file(client: &Client, bucket_name: &str, key: &str, dir: &Path
     }
     buf_writter.flush()?;
     drop(buf_writter); // close file handle correctly
-
     Ok(())
 }

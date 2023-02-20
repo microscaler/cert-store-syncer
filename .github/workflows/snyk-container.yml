@@ -16,9 +16,9 @@ name: Snyk Container
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+#  pull_request:
+#    # The branches below must be a subset of the branches above
+#    branches: [ "main" ]
   schedule:
     - cron: '33 17 * * 1'
 
@@ -34,6 +34,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-dockerx6-${{ steps.prep.outputs.semver }}
+        restore-keys: |
+          ${{ runner.os }}-dockerx6-
+
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          ~/.cargo/git
+          target
+        key: musl-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+    - name: Compile base features
+      run: |
+        mkdir -p ~/.cargo/{git,registry}
+        docker run --rm -t \
+            --mount type=bind,source=${{ github.workspace }},target=/volume \
+            --mount type=bind,source=$HOME/.cargo/registry,target=/root/.cargo/registry \
+            --mount type=bind,source=$HOME/.cargo/git,target=/root/.cargo/git \
+            clux/muslrust:stable \
+            cargo build --release
+        cp target/x86_64-unknown-linux-musl/release/controller .
+
     - name: Build a Docker image
       run: docker build -t your/image-to-test .
     - name: Run Snyk to check Docker image for vulnerabilities
